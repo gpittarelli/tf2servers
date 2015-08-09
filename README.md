@@ -1,5 +1,12 @@
 # tf2servers
 
+A simple TF2 server browser webapp.
+
+Configuration is in 2 files: .env (make a copy of .env.example) and a
+server list file (TODO: describe format).
+
+The below documentation is auto-generated from the chestnut
+clojurescript template.
 
 ## Development
 
