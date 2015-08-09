@@ -18,7 +18,7 @@
    [org.omcljs/om "0.8.8"]
    [environ "1.0.0"]
    [prismatic/om-tools "0.3.11"]
-   [clj-ssq "0.1.0-SNAPSHOT"]]
+   [clj-ssq "0.1.0"]]
 
   :plugins [[lein-cljsbuild "1.0.5"]
             [lein-environ "1.0.0"]
