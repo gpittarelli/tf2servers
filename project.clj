@@ -24,6 +24,8 @@
             [lein-environ "1.0.0"]
             [lein-less "1.7.3"]]
 
+  :main ^:skip-aot tf2servers.server
+
   :min-lein-version "2.5.0"
 
   :uberjar-name "tf2servers.jar"
@@ -49,7 +51,8 @@
          :dependencies [[figwheel "0.2.5"]
                         [figwheel-sidecar "0.2.5"]
                         [com.cemerick/piggieback "0.1.5"]
-                        [weasel "0.6.0"]]
+                        [weasel "0.6.0"]
+                        [org.clojure/tools.namespace "0.2.11"]]
 
          :repl-options {:init-ns tf2servers.server
                         :nrepl-middleware [cemerick.piggieback/wrap-cljs-repl]}
