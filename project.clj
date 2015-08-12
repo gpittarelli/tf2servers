@@ -19,7 +19,7 @@
    [org.omcljs/om "0.8.8"]
    [environ "1.0.0"]
    [prismatic/om-tools "0.3.11"]
-   [clj-ssq "0.1.0"]
+   [clj-ssq "0.2.1"]
    [environ "1.0.0"]
    [overtone/at-at "1.2.0"]]
 
