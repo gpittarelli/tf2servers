@@ -1,9 +1,9 @@
 # Lines starting with a # are comments
 
 # Port defaults to 27015
-# and duplicate servers get removed
+# and duplicate (ip, port) pairs only count once
 70.42.74.33:27015
 70.42.74.33
 
 # Hostnames will be resolved (still de-duplicated by IP address)
-payload.probablyaserver.como
+payload.probablyaserver.com
