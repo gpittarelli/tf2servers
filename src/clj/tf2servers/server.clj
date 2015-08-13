@@ -35,7 +35,7 @@
   (resources "/react" {:root "react"})
   (context "/api" []
     (GET "/servers" []
-      (api-response {:dat @server-list})))
+      (api-response @server-list)))
   (GET "/*" req (page)))
 
 (def http-handler
@@ -95,8 +95,7 @@
              (filter valid-server-str?)
              (map str-to-host-port)
              (remove nil?)
-             set) ; => [{:ip "..." :port 1234} ...]
-        ]
+             set)]
     (println "Server list:" (count servers))
     (update-server-list servers)
     (println "Server list updated" @server-list)

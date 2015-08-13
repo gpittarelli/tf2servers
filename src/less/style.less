@@ -1,3 +1,17 @@
 h1 {
   text-decoration: underline;
 }
+
+#app {
+  table {
+    tr {
+      &:nth-child (even) {
+        background: #CCC;
+      }
+
+      &.selected {
+        background: red;
+      }
+    }
+  }
+}

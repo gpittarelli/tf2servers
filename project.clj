@@ -21,7 +21,8 @@
    [prismatic/om-tools "0.3.11"]
    [clj-ssq "0.2.1"]
    [environ "1.0.0"]
-   [overtone/at-at "1.2.0"]]
+   [overtone/at-at "1.2.0"]
+   [cljs-ajax "0.3.14"]]
 
   :plugins [[lein-cljsbuild "1.0.5"]
             [lein-environ "1.0.0"]
@@ -58,6 +59,8 @@
                         [org.clojure/tools.namespace "0.2.11"]]
 
          :repl-options {:init-ns tf2servers.server
+                        :init (require '[clojure.tools.namespace.repl
+                                         :refer [refresh refresh-all]])
                         :nrepl-middleware [cemerick.piggieback/wrap-cljs-repl]}
 
          :plugins [[lein-figwheel "0.2.5"]]
