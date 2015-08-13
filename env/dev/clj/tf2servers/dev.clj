@@ -6,8 +6,7 @@
             [figwheel-sidecar.auto-builder :as fig-auto]
             [figwheel-sidecar.core :as fig]
             [clojurescript-build.auto :as auto]
-            [clojure.java.shell :refer [sh]]
-            [clojure.tools.namespace.repl :refer (refresh refresh-all)]))
+            [clojure.java.shell :refer [sh]]))
 
 (def is-dev? (env :is-dev))
 
