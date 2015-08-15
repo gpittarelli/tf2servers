@@ -43,19 +43,42 @@
 (defonce app-state
   (atom {:servers []}))
 
+(defn- toggle-sort-order [sort-order] (if (= sort-order :up) :down :up))
+
 (defcomponent server-table [data owner]
-  (init-state [_] {:selected-url nil})
-  (render-state [_ {:keys [selected-url]}]
+  (init-state [_]
+    {:selected-url nil
+     :selected-col nil
+     :sort-order :up})
+  (render-state [_ {:keys [selected-url selected-col sort-order]}]
     (dom/table
      (dom/thead
-      (dom/tr (dom/td {:class "icon-col"} lock-img)
-              (dom/td {:class "icon-col"} shield-img)
-              (dom/td "Server Title")
-              (dom/td "Game")
-              (dom/td {:class "bots"} bot-img)
-              (dom/td {:class "players" :col-span 3} players-img)
-              (dom/td "Map")
-              (dom/td "Tags")))
+      (dom/tr
+       (map-indexed
+        (fn [idx [class content attrs]]
+          (dom/td (merge
+                   {:class (str class
+                                (when (= idx selected-col)
+                                  " selected"))
+                    :on-click
+                    (fn [e]
+                      (let [selected-col (om/get-state owner :selected-col)]
+                        (if (not= idx selected-col)
+                          (do (om/set-state! owner :selected-col idx)
+                              (om/set-state! owner :sort-order :up))
+                          (do (om/update-state! owner :sort-order
+                                                toggle-sort-order)))))}
+                   attrs)
+                  content
+                  (dom/div {:class (str "col-sort-arrow " (name sort-order))})))
+        [["icon-col" lock-img]
+         ["icon-col" shield-img]
+         ["title" "Server Title"]
+         ["game" "Game"]
+         ["bots" bot-img]
+         ["players" players-img {:col-span 3}]
+         ["map" "Map"]
+         ["tags" "Tags"]])))
      (dom/tbody
       (for [server (:servers data)
             :let [url (str (:ip server) ":" (:port server))
@@ -65,9 +88,11 @@
           :on-double-click #(game-connect url)
           :on-click #(om/set-state! owner :selected-url url)
           :class (when selected "selected")}
-         (dom/td (when (= (get-in server [:info :visibility]) 1)
+         (dom/td {:class "icon-col"}
+                 (when (= (get-in server [:info :visibility]) 1)
                    lock-img))
-         (dom/td (when (= (get-in server [:info :vac-enabled?]) 1)
+         (dom/td {:class "icon-col"}
+                 (when (= (get-in server [:info :vac-enabled?]) 1)
                    shield-img))
          (dom/td {:class "name"} (get-in server [:info :name]))
          (dom/td {:class "game"} (get-in server [:info :game]))
@@ -82,9 +107,12 @@
                  (dom/ul
                   (->> (get-in server [:info :keywords])
                        (map name)
-                       sort
                        (map maybe-tag->icon)
-                       (map dom/li)
+                       (sort-by #(if (string? %1)
+                                   (str/lower-case %1)
+                                   (:alt %1)))
+                       (map #(dom/li {:class (when-not (string? %1) "icon")}
+                                     %1))
                        (interpose " "))))))))))
 
 (defcomponent app [data owner]

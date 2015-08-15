@@ -20,29 +20,69 @@ html, body, #app {
     overflow: hidden;
     border-collapse: collapse;
 
+    table-layout: fixed;
+
+    td {
+
+      &.icon-col, &.bots {
+        width: 16px;
+      }
+
+      &.players {
+        width: 40px;
+      }
+
+      &.icon-col, &.players, &.bots {
+        text-align: center;
+        vertical-align: center;
+      }
+    }
+
     thead tr {
+      white-space: nowrap;
       background: hsla(0, 0%, 40%, 1);
+      border-bottom: 1px hsla(0, 0%, 10%, 1) solid;
 
       td {
         border: 1px hsla(0, 0%, 30%, 1) solid;
         border-width: 0 1px;
 
-        padding: 0 2px;
+        padding: 2px;
+
+        &.selected {
+          background: hsla(0, 0%, 30%, 1);
+          color: hsla(0, 0%, 80%, 1);
+
+          .col-sort-arrow {
+            display: inline-block;
+            width: 10px;
+            height: 10px;
+            float: right;
+
+            border: 5px transparent solid;
+
+            &.up {
+              border-top: 10px hsla(0, 0%, 80%, 1) solid;
+              border-bottom: 0;
+            }
+
+            &.down {
+              border-bottom: 10px hsla(0, 0%, 80%, 1) solid;
+              border-top: 0;
+            }
+          }
+        }
 
         &.icon-col {
           padding: 0;
           border: 0;
-        }
-
-        &.icon-col, &.players, &.bots {
-          text-align: center;
-          vertical-align: center;
         }
       }
     }
 
     tbody tr {
       overflow: hidden;
+      white-space: nowrap;
 
       background: hsla(0, 0%, 60%, 1);
       &:nth-child(even) {
