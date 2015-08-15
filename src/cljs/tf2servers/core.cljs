@@ -22,11 +22,13 @@
 (def hlstatsx-img (make-icon "images/hlstatsx.png" "HLstatsX:CE"))
 (def dice-img (make-icon "images/dice.png" "Random Crits"))
 (def nodice-img (make-icon "images/nodice.png" "No Crits"))
+(def chat-img (make-icon "images/chat.png" "Alltalk"))
 
 (let [tag->icon
       {"replays" film-img
        "HLstatsX:CE" hlstatsx-img
-       "nocrits" nodice-img}]
+       "nocrits" nodice-img
+       "alltalk" chat-img}]
   (defn maybe-tag->icon
     "Maps common server tags to an appropriate icon, or just returns
   the tag if no mapping exists."
