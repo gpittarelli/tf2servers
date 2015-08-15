@@ -72,7 +72,6 @@
     (when host {:ip host :port port})))
 
 (defn- update-server-list [servers]
-  (println "UPDATE" servers)
   (->> servers
        (map (fn [{:keys [ip port] :as server}]
               (assoc server
@@ -96,9 +95,7 @@
              (map str-to-host-port)
              (remove nil?)
              set)]
-    (println "Server list:" (count servers))
     (update-server-list servers)
-    (println "Server list updated" @server-list)
     (at/every 60000 #(update-server-list servers) at-pool)))
 
 (defn stop-server []
