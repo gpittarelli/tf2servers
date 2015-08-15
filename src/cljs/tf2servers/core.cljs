@@ -19,10 +19,14 @@
 (def film-img (make-icon "images/film.png" "Replays enabled"))
 (def bot-img (make-icon "images/bot.png" "Bots on server"))
 (def players-img (make-icon "images/people.png" "Players on server"))
-
+(def hlstatsx-img (make-icon "images/hlstatsx.png" "HLstatsX:CE"))
+(def dice-img (make-icon "images/dice.png" "Random Crits"))
+(def nodice-img (make-icon "images/nodice.png" "No Crits"))
 
 (let [tag->icon
-      {"replays" film-img}]
+      {"replays" film-img
+       "HLstatsX:CE" hlstatsx-img
+       "nocrits" nodice-img}]
   (defn maybe-tag->icon
     "Maps common server tags to an appropriate icon, or just returns
   the tag if no mapping exists."
