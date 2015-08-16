@@ -65,7 +65,18 @@
      :sort-order :up})
   (render-state [_ {:keys [selected-url selected-col sort-order]}]
     (dom/table
-     (dom/thead
+     (dom/colgroup
+      (dom/col {:class "icon-col"})
+      (dom/col {:class "icon-col"})
+      (dom/col {:class "title"})
+      (dom/col {:class "game"})
+      (dom/col {:class "icon-col bot-col"})
+      (dom/col {:class "players"})
+      (dom/col {:class "sep"})
+      (dom/col {:class "max-players"})
+      (dom/col {:class "map"})
+      (dom/col {:class "tags"}))
+    (dom/thead
       (dom/tr
        (map-indexed
         (fn [idx [class content attrs]]

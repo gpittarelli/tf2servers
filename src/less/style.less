@@ -15,6 +15,8 @@ html, body, #app {
 
 #app {
   table {
+    cursor: default;
+
     font-family: arial;
     width: 100%;
     overflow: hidden;
@@ -22,28 +24,54 @@ html, body, #app {
 
     table-layout: fixed;
 
-    td {
-
-      &.icon-col, &.bots {
-        width: 16px;
+    colgroup {
+      col.icon-col {
+          width: 18px;
       }
 
-      &.players {
-        width: 40px;
+      col.bots {
+          width: 20px;
       }
 
-      &.icon-col, &.players, &.bots {
-        text-align: center;
-        vertical-align: center;
+      col.players {
+        width: 20px;
+      }
+
+      col.sep {
+        width: 5px;
+      }
+
+      col.max-players {
+        width: 20px;
+      }
+
+      col.game {
+        width: 50px;
+      }
+
+      col.map {
+        width: 100px;
       }
     }
 
-    thead tr {
+    td {
+      overflow: hidden;
+      text-overflow: ellipsis;
       white-space: nowrap;
+    }
+
+    td.icon-col, td.players, td.bots {
+      text-align: center;
+      vertical-align: center;
+    }
+
+    thead tr {
+      user-select: none;
       background: hsla(0, 0%, 40%, 1);
       border-bottom: 1px hsla(0, 0%, 10%, 1) solid;
 
       td {
+        user-select: none;
         border: 1px hsla(0, 0%, 30%, 1) solid;
         border-width: 0 1px;
 
@@ -53,11 +81,17 @@ html, body, #app {
           background: hsla(0, 0%, 30%, 1);
           color: hsla(0, 0%, 80%, 1);
 
+          position: relative;
+
           .col-sort-arrow {
             display: inline-block;
             width: 10px;
             height: 10px;
             float: right;
+
+            position: absolute;
+            top: 7px;
+            right: 5px;
 
             border: 5px transparent solid;
 
