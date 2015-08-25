@@ -3,52 +3,10 @@
             [om-tools.dom :as dom :include-macros true]
             [om-tools.core :refer-macros [defcomponent]]
             [ajax.core :refer [GET]]
-            [clojure.string :as str]))
+            [clojure.string :as str]
+            [tf2servers.images :as img]))
 
 (enable-console-print!)
-
-(defn- make-icon [src desc]
-  (dom/img {:src src
-            :alt desc
-            :title desc
-            :width 16
-            :height 16}))
-
-(def lock-img (make-icon "images/lock.png" "Password protected"))
-(def shield-img (make-icon "images/shield.png" "VAC enabled"))
-(def film-img (make-icon "images/film.png" "Replays enabled"))
-(def bot-img (make-icon "images/bot.png" "Bots on server"))
-(def players-img (make-icon "images/people.png" "Players on server"))
-(def hlstatsx-img (make-icon "images/hlstatsx.png" "HLstatsX:CE"))
-(def dice-img (make-icon "images/dice.png" "Random Crits"))
-(def nodice-img (make-icon "images/nodice.png" "No Crits"))
-(def chat-img (make-icon "images/chat.png" "Alltalk"))
-(def tf2-img (make-icon "images/tf2.png" "Team Fortress"))
-(def tf2true-img (make-icon "images/tf2true.png" "TFTrue"))
-
-(let [tag->icon
-      {"replays" film-img
-       "HLstatsX:CE" hlstatsx-img
-       "nocrits" nodice-img
-       "alltalk" chat-img}]
-  (defn maybe-tag->icon
-    "Maps common server tags to an appropriate icon, or just returns
-  the tag if no mapping exists."
-    [tag]
-    (if (contains? tag->icon tag)
-      (tag->icon tag)
-      tag)))
-
-(let [game->icon
-      {"Team Fortress" tf2-img
-       "TFTrue  " tf2true-img}]
-  (defn maybe-game->icon
-    "Maps common server game modes to an appropriate icon, or just
-  returns the raw game mode if no mapping exists."
-    [gamemode]
-    (if (contains? game->icon gamemode)
-      (game->icon gamemode)
-      gamemode)))
 
 (defn- game-connect [url]
   (set! (.-location js/window) (str "steam://connect/" url)))
@@ -60,17 +18,17 @@
 
 (def ^:private server-table-columns
   [{:class "icon-col"
-    :header lock-img}
+    :header img/lock-img}
    {:class "icon-col"
-    :header shield-img}
+    :header img/shield-img}
    {:class "title"
     :header "Server Title"}
    {:class "game"
     :header "Game"}
    {:class "bots"
-    :header bot-img}
+    :header img/bot-img}
    {:class "players"
-    :header players-img}
+    :header img/players-img}
    {:class "map"
     :header "Map"}
    {:class "tags"
@@ -83,10 +41,10 @@
          players-str (str players "/" max-players)]
     {:url (str (:ip server) ":" (:port server))
      :server
-     [{:class "icon-col" :content (when password? lock-img)}
-      {:class "icon-col" :content (when vac-enabled? shield-img)}
+     [{:class "icon-col" :content (when password? img/lock-img)}
+      {:class "icon-col" :content (when vac-enabled? img/shield-img)}
       {:class "name" :content name}
-      {:class "game" :content (maybe-game->icon game)}
+      {:class "game" :content (img/maybe-game->icon game)}
       {:class "bots"
        :content (if (zero? bots) "-" bots)
        :attrs {:title (str bots " bots")}}
@@ -96,7 +54,7 @@
        :content
        (dom/ul
          (->> (:keywords info)
-              (map maybe-tag->icon)
+              (map img/maybe-tag->icon)
               (sort-by #(if (string? %1)
                           (str/lower-case %1)
                           (:alt %1)))
