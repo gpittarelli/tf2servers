@@ -111,6 +111,12 @@ div.server-table-container {
     overflow-y: scroll;
     overflow-x: hidden;
 
+    flex: 1;
+
+    // set this as the containing block for the position:absolute
+    // bottom spacer element (to force scrollbars)
+    position: relative;
+
     table.server-table {
       width: 100%;
       height: 100%;
@@ -181,6 +187,21 @@ div.server-table-container {
         &.selected {
           background: hsla(0, 0%, 30%, 1);
           color: hsla(0, 0%, 90%, 1);
+        }
+
+        &.top-spacer {
+          visibility: hidden;
+          top: 0;
+          left: 0;
+        }
+
+        &.bottom-spacer {
+          position: absolute;
+          visibility: hidden;
+        }
+
+        &.loading td {
+          height: 27px;
         }
 
         td {
