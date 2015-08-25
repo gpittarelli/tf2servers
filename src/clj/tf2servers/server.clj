@@ -35,7 +35,8 @@
   (resources "/react" {:root "react"})
   (context "/api" []
     (GET "/servers" []
-      (api-response @server-list)))
+      (api-response
+       (map #(dissoc % :rules :players) @server-list))))
   (GET "/*" req (page)))
 
 (def http-handler
@@ -76,12 +77,16 @@
        (map (fn [{:keys [ip port] :as server}]
               (assoc server
                      :info (ssq/info ip port)
-                     :players (ssq/players ip port)
-                     :rules (ssq/rules ip port))))
+;;;;                     :players (ssq/players ip port)
+;;;;                     :rules (ssq/rules ip port)
+                     )))
        (map #(reduce
               (fn [data key] (update-in data [key] deref))
               %
-              [:info :players :rules]))
+              [:info]))
+       (remove
+        (fn [server]
+          (contains? (:info server) :err)))
        (reset! server-list)))
 
 (defn start-server-monitoring []
