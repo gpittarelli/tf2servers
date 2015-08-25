@@ -38,7 +38,9 @@
       (api-response
        (->> @server-list
             (map #(dissoc % :rules :players))
-            (take 30)))))
+            (take 30))))
+    (context "/stats" []
+      (GET "/count" [] (api-response {:count (count @server-list)}))))
   (GET "/" req (page))
   (not-found "404 Don't do that."))
 
