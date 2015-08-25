@@ -4,7 +4,7 @@
             [tf2servers.dev :refer [is-dev? inject-devmode-html
             browser-repl start-figwheel start-less]]
             [compojure.core :refer [GET defroutes context]]
-            [compojure.route :refer [resources]]
+            [compojure.route :refer [resources not-found]]
             [net.cgrand.enlive-html :refer [deftemplate]]
             [net.cgrand.reload :refer [auto-reload]]
             [ring.middleware.reload :as reload]
@@ -36,8 +36,11 @@
   (context "/api" []
     (GET "/servers" []
       (api-response
-       (map #(dissoc % :rules :players) @server-list))))
-  (GET "/*" req (page)))
+       (->> @server-list
+            (map #(dissoc % :rules :players))
+            (take 30)))))
+  (GET "/" req (page))
+  (not-found "404 Don't do that."))
 
 (def http-handler
   (if is-dev?
