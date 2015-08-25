@@ -58,100 +58,156 @@
 
 (defn- toggle-sort-order [sort-order] (if (= sort-order :up) :down :up))
 
+(def ^:private server-table-columns
+  [{:class "icon-col"
+    :header lock-img}
+   {:class "icon-col"
+    :header shield-img}
+   {:class "title"
+    :header "Server Title"}
+   {:class "game"
+    :header "Game"}
+   {:class "bots"
+    :header bot-img}
+   {:class "players"
+    :header players-img}
+   {:class "map"
+    :header "Map"}
+   {:class "tags"
+    :header "Tags"}])
+
+(defn- server->table-row [server]
+  (let [{game-map :map
+         :keys [password? vac-enabled? name game bots players max-players]
+         :as info} (:info server)
+         players-str (str players "/" max-players)]
+    {:url (str (:ip server) ":" (:port server))
+     :server
+     [{:class "icon-col" :content (when password? lock-img)}
+      {:class "icon-col" :content (when vac-enabled? shield-img)}
+      {:class "name" :content name}
+      {:class "game" :content (maybe-game->icon game)}
+      {:class "bots"
+       :content (if (zero? bots) "-" bots)
+       :attrs {:title (str bots " bots")}}
+      {:class "players" :content players-str :attrs {:title players-str}}
+      {:class "map" :content game-map}
+      {:class "keys"
+       :content
+       (dom/ul
+        (->> (:keywords info)
+             (map maybe-tag->icon)
+             (sort-by #(if (string? %1)
+                         (str/lower-case %1)
+                         (:alt %1)))
+             (map #(dom/li {:class (when-not (string? %1) "icon")}
+                           %1))
+             (interpose " ")))}]}))
+
+(defn update-sort-order! [data owner col-idx]
+  (let [selected-col (om/get-state owner :selected-col)]
+    (if (not= col-idx selected-col)
+      (do (om/set-state! owner :selected-col col-idx)
+          (om/set-state! owner :sort-order :up))
+      (do (om/update-state! owner :sort-order
+                            toggle-sort-order)))
+    (om/transact!
+     data :servers
+     (fn [server-list]
+       (sort-by #(get-in % [:server col-idx :content])
+                (if (= :up (om/get-state owner :sort-order))
+                  #(.localeCompare (str %1) (str %2))
+                  #(- (.localeCompare (str %1) (str %2))))
+                server-list)))))
+
+(defn update-col-sizes! [data owner]
+  (let [row (-> (om/get-node owner "table-rows")
+                .-children
+                (aget 0)
+                .-children
+                array-seq)
+        widths (doall (for [td row] (.-clientWidth td)))]
+    (om/set-state! owner :col-widths widths)))
+
 (defcomponent server-table [data owner]
   (init-state [_]
     {:selected-url nil
      :selected-col nil
-     :sort-order :up})
-  (render-state [_ {:keys [selected-url selected-col sort-order]}]
-    (dom/table
-     (dom/colgroup
-      (dom/col {:class "icon-col"})
-      (dom/col {:class "icon-col"})
-      (dom/col {:class "title"})
-      (dom/col {:class "game"})
-      (dom/col {:class "icon-col bot-col"})
-      (dom/col {:class "players"})
-      (dom/col {:class "sep"})
-      (dom/col {:class "max-players"})
-      (dom/col {:class "map"})
-      (dom/col {:class "tags"}))
-    (dom/thead
-      (dom/tr
-       (map-indexed
-        (fn [idx [class content attrs]]
-          (dom/td (merge
-                   {:class (str class
-                                (when (= idx selected-col)
-                                  " selected"))
-                    :on-click
-                    (fn [e]
-                      (let [selected-col (om/get-state owner :selected-col)]
-                        (if (not= idx selected-col)
-                          (do (om/set-state! owner :selected-col idx)
-                              (om/set-state! owner :sort-order :up))
-                          (do (om/update-state! owner :sort-order
-                                                toggle-sort-order)))))}
-                   attrs)
-                  content
-                  (dom/div {:class (str "col-sort-arrow " (name sort-order))})))
-        [["icon-col" lock-img]
-         ["icon-col" shield-img]
-         ["title" "Server Title"]
-         ["game" "Game"]
-         ["bots" bot-img]
-         ["players" players-img {:col-span 3}]
-         ["map" "Map"]
-         ["tags" "Tags"]])))
-     (dom/tbody
-      (for [server (:servers data)
-            :let [url (str (:ip server) ":" (:port server))
-                  selected (= url selected-url)]]
-        (dom/tr
-         {:data-server url
-          :on-double-click #(game-connect url)
-          :on-click #(om/set-state! owner :selected-url url)
-          :class (when selected "selected")}
-         (dom/td {:class "icon-col"}
-                 (when (= (get-in server [:info :visibility]) 1)
-                   lock-img))
-         (dom/td {:class "icon-col"}
-                 (when (= (get-in server [:info :vac-enabled?]) 1)
-                   shield-img))
-         (dom/td {:class "name"} (get-in server [:info :name]))
-         (dom/td {:class "game"}
-                 (maybe-game->icon (get-in server [:info :game])))
-         (dom/td {:class "bots"}
-                 (let [bot-cnt (get-in server [:info :bots])]
-                   (if (zero? bot-cnt) "-" [bot-cnt bot-img])))
-         (dom/td {:class "player-cnt"} (get-in server [:info :players]))
-         (dom/td {:class "player-sep"} "/")
-         (dom/td {:class "max-players"} (get-in server [:info :max-players]))
-         (dom/td {:class "map"} (get-in server [:info :map]))
-         (dom/td {:class "keys"}
-                 (dom/ul
-                  (->> (get-in server [:info :keywords])
-                       (map name)
-                       (map maybe-tag->icon)
-                       (sort-by #(if (string? %1)
-                                   (str/lower-case %1)
-                                   (:alt %1)))
-                       (map #(dom/li {:class (when-not (string? %1) "icon")}
-                                     %1))
-                       (interpose " "))))))))))
+     :sort-order :up
+     :col-widths (repeat 10 nil)})
+  (render-state [_ {:keys [selected-url selected-col
+                           sort-order col-widths]}]
+    (dom/div {:class "server-table-container"}
+      (dom/ul {:class "table-header" :ref "table-header"}
+              (map
+               (fn [idx {:keys [class header attrs]} width]
+                 (let [attrs (merge
+                              attrs
+                              {:class (str class
+                                           " header"
+                                           (when (= idx selected-col)
+                                             " selected"))
+                               :on-click #(update-sort-order! data owner idx)}
+                              (when width {:style {:width width}}))]
+                   (dom/li attrs
+                           header
+                           (dom/div {:class (str "col-sort-arrow "
+                                                 (name sort-order))}))))
+               (range)
+               server-table-columns
+               col-widths))
+      (dom/div {:class "server-table-scroller"}
+        (dom/table
+          {:class "server-table"}
+          (dom/colgroup
+           (map #(dom/col {:class %1})
+                ["icon-col" "icon-col" "title" "game" "icon-col bot-col"
+                 "players" "map" "tags"]))
+          (dom/tbody
+           {:ref "table-rows"}
+           (for [{:keys [url server]} (:servers data)
+                 :let [selected (= url selected-url)]]
+             (dom/tr
+              {:data-server url
+               :on-double-click #(game-connect url)
+               :on-click #(om/set-state! owner :selected-url url)
+               :class (when selected "selected")}
+              (map (fn [{:keys [class content attrs]}]
+                     (dom/td
+                      (merge {:class class
+                              :title (when (string? content) content)}
+                             attrs)
+                      content))
+                   server))))))))
+  (did-mount [_]
+    (let [update-sizes! #(update-col-sizes! data owner)]
+      (.addEventListener js/window "resize" update-sizes!)
+      (update-sizes!)))
+  (did-update [_ _ _]
+              (update-col-sizes! data owner)))
+
+(defcomponent filter-controls [data owner]
+  (render [_]
+          (dom/header)))
 
 (defcomponent app [data owner]
   (init-state [_]
     (GET "/api/servers"
-        {:handler #(om/update! data :servers %)
+        {:handler
+         (fn [servers]
+           (println "Recved " (count servers) " servers.")
+           (om/update! data :servers (map server->table-row servers)))
          :error-handler
          (fn [err]
-           (println "Fetch error:")
+           (println "Fetch error:" err)
            (.log js/console err))})
     {})
   (render [_]
-          (om/build server-table data)))
+          (dom/div
+            (om/build filter-controls data)
+            (om/build server-table data))))
 
 (defn main []
-  (om/root app app-state
-    {:target (. js/document (getElementById "app"))}))
+  (om/root app
+           app-state
+           {:target (. js/document (getElementById "app"))}))

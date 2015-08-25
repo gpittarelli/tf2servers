@@ -1,11 +1,14 @@
-h1 {
-  text-decoration: underline;
+@header-height: 50px;
+
+html {
+  box-sizing: border-box;
 }
 
-* {
+*, *:before, *:after {
+  font-family: Arial;
   padding: 0;
   margin: 0;
-  box-sizing: border-box;
+  box-sizing: inherit;
 }
 
 html, body, #app {
@@ -14,163 +17,216 @@ html, body, #app {
 }
 
 #app {
-  table {
-    cursor: default;
+  position: relative;
+  padding-top: @header-height;
 
-    font-family: arial;
+  >div {
+    height: 100%;
     width: 100%;
-    overflow: hidden;
-    border-collapse: collapse;
+  }
+}
 
-    table-layout: fixed;
+header {
+  width: 100%;
+  height: @header-height;
 
-    colgroup {
-      col.icon-col {
-          width: 18px;
-      }
+  position: fixed;
+  top: 0;
+  left: 0;
 
-      col.bots {
-          width: 20px;
-      }
+  background-color: hsla(0, 0%, 70%, 1);
+}
 
-      col.players {
-        width: 20px;
-      }
+div.server-table-container {
+  width: 100%;
+  height: 100%;
 
-      col.sep {
-        width: 5px;
-      }
+  display: flex;
+  flex-flow: column;
+  flex-wrap: nowrap;
+  justify-content: flex-start;
+  align-items: flex-start;
+  align-content: flex-start;
 
-      col.max-players {
-        width: 20px;
-      }
+  ul.table-header {
+    width: 100%;
+    height: 28px;
+    display: flex;
+    list-style: none;
 
-      col.game {
-        width: 50px;
-      }
+    background: hsla(0, 0%, 40%, 1);
 
-      col.map {
-        width: 100px;
-      }
-    }
-
-    td {
-      overflow: hidden;
-      text-overflow: ellipsis;
-      white-space: nowrap;
-    }
-
-    td.icon-col, td.players, td.bots {
+    li.header {
+      height: 100%;
+      padding: 4px 0;
+      display: inline-block;
+      float: left;
       text-align: center;
       vertical-align: center;
-    }
+      border-left: 1px black solid;
 
-    thead tr {
-      user-select: none;
-      background: hsla(0, 0%, 40%, 1);
       border-bottom: 1px hsla(0, 0%, 10%, 1) solid;
 
-      td {
-        user-select: none;
-        border: 1px hsla(0, 0%, 30%, 1) solid;
-        border-width: 0 1px;
-
-        padding: 2px;
-
-        &.selected {
-          background: hsla(0, 0%, 30%, 1);
-          color: hsla(0, 0%, 80%, 1);
-
-          position: relative;
-
-          .col-sort-arrow {
-            display: inline-block;
-            width: 10px;
-            height: 10px;
-            float: right;
-
-            position: absolute;
-            top: 7px;
-            right: 5px;
-
-            border: 5px transparent solid;
-
-            &.up {
-              border-top: 10px hsla(0, 0%, 80%, 1) solid;
-              border-bottom: 0;
-            }
-
-            &.down {
-              border-bottom: 10px hsla(0, 0%, 80%, 1) solid;
-              border-top: 0;
-            }
-          }
-        }
-
-        &.icon-col {
-          padding: 0;
-          border: 0;
-        }
-      }
-    }
-
-    tbody tr {
-      overflow: hidden;
-      white-space: nowrap;
-
-      background: hsla(0, 0%, 60%, 1);
-      &:nth-child(even) {
-        background: hsla(0, 0%, 70%, 1);
+      &:first-child {
+        border-left: 0;
       }
 
       &.selected {
         background: hsla(0, 0%, 30%, 1);
-        color: hsla(0, 0%, 90%, 1);
+        color: hsla(0, 0%, 80%, 1);
+
+        border-top: 1px hsla(0, 0%, 10%, 1) solid;
+        border-bottom: 0;
+
+        position: relative;
+
+        .col-sort-arrow {
+          display: inline-block;
+          width: 10px;
+          height: 10px;
+          float: right;
+
+          position: absolute;
+          top: 7px;
+          right: 5px;
+
+          border: 5px transparent solid;
+
+          &.up {
+            border-top: 10px hsla(0, 0%, 80%, 1) solid;
+            border-bottom: 0;
+          }
+
+          &.down {
+            border-bottom: 10px hsla(0, 0%, 80%, 1) solid;
+            border-top: 0;
+          }
+        }
+      }
+    }
+  }
+
+  div.server-table-scroller {
+    width: 100%;
+    overflow-y: scroll;
+    overflow-x: hidden;
+
+    table.server-table {
+      width: 100%;
+      height: 100%;
+      cursor: default;
+
+      border-collapse: collapse;
+
+      table-layout: fixed;
+
+      colgroup {
+        col.icon-col { width: 18px; }
+        col.bots { width: 40px; }
+        col.players { width: 55px; }
+        col.game { width: 50px; }
+        col.map { width: 100px; }
       }
 
       td {
-        padding: 0.4em 0;
-        font-size: 12px;
+        overflow: hidden;
+        text-overflow: ellipsis;
+        white-space: nowrap;
+      }
 
-        &.player-cnt {
-          text-align: right;
+      td.icon-col, td.players, td.bots, th.icon-col, th.players, th.bots {
+        text-align: center;
+        vertical-align: center;
+      }
+
+      thead tr {
+        th {
+          height: 20px;
+          max-height: 20px;
+
+          background-color: red;
+
+          user-select: none;
+          border: 1px hsla(0, 0%, 30%, 1) solid;
+          border-width: 0 1px;
+
+          padding: 2px;
+
+          &.icon-col {
+            padding: 0;
+            border: 0;
+          }
+
+          div.header-wrapper {
+            width: 100%;
+            height: 100%;
+
+            div.header {
+              position: relative;
+              top: 0px;
+            }
+          }
+        }
+      }
+
+      tbody tr {
+        overflow: hidden;
+        white-space: nowrap;
+
+        background: hsla(0, 0%, 60%, 1);
+        &:nth-child(even) {
+          background: hsla(0, 0%, 70%, 1);
         }
 
-        &.bots {
-          text-align: center;
+        &.selected {
+          background: hsla(0, 0%, 30%, 1);
+          color: hsla(0, 0%, 90%, 1);
         }
 
-        &.player-sep {
-          text-align: center;
-        }
+        td {
+          padding: 0.4em 0;
+          font-size: 12px;
 
-        &.player-cnt, &.player-sep, &.max-players {
-          border: 0;
-          padding: 0;
-          margin: 0;
-        }
+          &.player-cnt {
+            text-align: right;
+          }
 
-        &.keys {
-          overflow: hidden;
-        }
+          &.bots {
+            text-align: center;
+          }
 
-        &.keys ul {
-          display: inline;
-          list-style: none;
+          &.player-sep {
+            text-align: center;
+          }
 
-          li {
+          &.player-cnt, &.player-sep, &.max-players {
+            border: 0;
+            padding: 0;
+            margin: 0;
+          }
+
+          &.keys {
+            overflow: hidden;
+          }
+
+          &.keys ul {
             display: inline;
+            list-style: none;
 
-            &:after {
-              content: ",";
-            }
+            li {
+              display: inline;
 
-            &.icon:after {
-              content: "";
-            }
+              &:after {
+                content: ",";
+              }
 
-            &:last-child:after {
-              content: "";
+              &.icon:after {
+                content: "";
+              }
+
+              &:last-child:after {
+                content: "";
+              }
             }
           }
         }
