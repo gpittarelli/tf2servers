@@ -31,7 +31,9 @@
     [tag]
     (if (contains? tag->icon tag)
       (tag->icon tag)
-      tag)))
+      tag))
+
+  (defn tag-has-icon? [tag] (contains? tag->icon tag)))
 
 (let [game->icon
       {"Team Fortress" tf2-img

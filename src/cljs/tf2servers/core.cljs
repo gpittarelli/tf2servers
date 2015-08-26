@@ -8,6 +8,12 @@
 
 (enable-console-print!)
 
+(defn pad
+  "Ensure a given seq is always at least n elements long, adding as
+  many pad elements to the end as necessary."
+  [n pad coll]
+  (take n (concat coll (repeat pad))))
+
 (defn- game-connect [url]
   (set! (.-location js/window) (str "steam://connect/" url)))
 
@@ -16,51 +22,91 @@
 
 (defn- toggle-sort-order [sort-order] (if (= sort-order :up) :down :up))
 
-(def ^:private server-table-columns
-  [{:class "icon-col"
-    :header img/lock-img}
-   {:class "icon-col"
-    :header img/shield-img}
-   {:class "title"
-    :header "Server Title"}
-   {:class "game"
-    :header "Game"}
-   {:class "bots"
-    :header img/bot-img}
-   {:class "players"
-    :header img/players-img}
-   {:class "map"
-    :header "Map"}
-   {:class "tags"
-    :header "Tags"}])
+(defn locale-compare [s1 s2]
+  (cond
+    (string? s1) (.localeCompare s1 s2)
+    (string? s2) (.localeCompare s2 s1)
+    :else 0))
+
+(defn make-list-comparator [comp-fn]
+  (fn [coll1 coll2]
+    (let [size (max (count coll1) (count coll2))
+          coll1 (pad size nil coll1)
+          coll2 (pad size nil coll2)])
+    (or (first (remove zero? (map comp-fn coll1 coll2)))
+        0)))
+
+(let [bool-comp identity
+      str-comp locale-compare
+      str-list-comp (make-list-comparator str-comp)
+      int-comp compare
+      int-pair-comp (make-list-comparator int-comp)]
+  (def ^:private server-table-columns
+    [{:class "icon-col"
+      :header img/lock-img
+      :comp bool-comp}
+     {:class "icon-col"
+      :header img/shield-img
+      :comp bool-comp}
+     {:class "title"
+      :header "Server Title"
+      :comp str-comp}
+     {:class "game"
+      :header "Game"
+      :comp str-comp}
+     {:class "bots"
+      :header img/bot-img
+      :comp int-comp}
+     {:class "players"
+      :header img/players-img
+      :comp int-pair-comp}
+     {:class "map"
+      :header "Map"
+      :comp str-comp}
+     {:class "tags"
+      :header "Tags"
+      :comp str-list-comp}]))
 
 (defn- server->table-row [server]
   (let [{game-map :map
-         :keys [password? vac-enabled? name game bots players max-players]
+         :keys [password? vac-enabled? name game bots players max-players
+                keywords]
          :as info} (:info server)
          players-str (str players "/" max-players)]
     {:url (str (:ip server) ":" (:port server))
      :server
-     [{:class "icon-col" :content (when password? img/lock-img)}
-      {:class "icon-col" :content (when vac-enabled? img/shield-img)}
-      {:class "name" :content name}
-      {:class "game" :content (img/maybe-game->icon game)}
+     [{:class "icon-col" :content (when password? img/lock-img)
+       :sort-val password?}
+      {:class "icon-col" :content (when vac-enabled? img/shield-img)
+       :sort-val vac-enabled?}
+      {:class "name" :content name
+       :sort-val name}
+      {:class "game" :content (img/maybe-game->icon game)
+       :sort-val game}
       {:class "bots"
        :content (if (zero? bots) "-" bots)
-       :attrs {:title (str bots " bots")}}
-      {:class "players" :content players-str :attrs {:title players-str}}
-      {:class "map" :content game-map}
-      {:class "keys"
-       :content
-       (dom/ul
-         (->> (:keywords info)
-              (map img/maybe-tag->icon)
-              (sort-by #(if (string? %1)
-                          (str/lower-case %1)
-                          (:alt %1)))
-              (map #(dom/li {:class (when-not (string? %1) "icon")}
-                            %1))
-              (interpose " ")))}]}))
+       :attrs {:title (str bots " bots")}
+       :sort-val bots}
+      {:class "players" :content players-str :attrs {:title players-str}
+       :sort-val [players max-players]}
+      {:class "map" :content game-map
+       :sort-val game-map}
+      (let [keywords
+            (->> keywords
+                 (map str/lower-case)
+                 (group-by img/tag-has-icon?)
+                 ((juxt #(get % true) #(get % false)))
+                 (map sort)
+                 flatten)]
+        {:class "keys"
+         :sort-val keywords
+         :content
+         (dom/ul {:title (str/join ", " keywords)}
+           (->> keywords
+                (map img/maybe-tag->icon)
+                (map #(dom/li {:class (when-not (string? %1) "icon")}
+                              %1))
+                (interpose " ")))})]}))
 
 (defn update-sort-order! [data owner col-idx]
   (let [selected-col (om/get-state owner :selected-col)]
@@ -68,10 +114,10 @@
       (do (om/set-state! owner :selected-col col-idx)
           (om/set-state! owner :sort-order :up))
       (om/update-state! owner :sort-order toggle-sort-order)))
-  (let [key-fn #(get-in % [:server col-idx :content])
+  (let [key-fn #(get-in % [:server col-idx :sort-val])
+        compare-fn' (:comp (server-table-columns col-idx))
         compare-fn (if (= :up (om/get-state owner :sort-order))
-                     #(.localeCompare (str %1) (str %2))
-                     #(- (.localeCompare (str %1) (str %2))))]
+                     compare-fn' #(- (compare-fn' %1 %2)))]
     (om/transact! data :servers #(sort-by key-fn compare-fn %))))
 
 (defn- maybe-set-state [owner key data]
@@ -115,12 +161,6 @@
                         attrs)
                  content))
              server)))))
-
-(defn pad
-  "Ensure a given seq is always at least n elements long, adding as
-  many pad elements to the end as necessary."
-  [n pad coll]
-  (take n (concat coll (repeat pad))))
 
 (defcomponent server-table [data owner]
   (display-name [_] "server-table")
