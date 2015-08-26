@@ -10,17 +10,14 @@
             [ring.middleware.reload :as reload]
             [ring.middleware.defaults :refer [wrap-defaults api-defaults]]
             [ring.middleware.edn :refer [wrap-edn-params]]
-            [environ.core :refer [env]]
             [ring.adapter.jetty :refer [run-jetty]]
             [environ.core :refer [env]]
             [overtone.at-at :as at]
-            [clj-ssq.core :as ssq]
-            [clojure.tools.namespace.repl :refer [refresh refresh-all]])
-  (:import [java.net InetAddress UnknownHostException])
+            [clojure.tools.namespace.repl :refer [refresh refresh-all]]
+            [tf2servers.game-servers :as servers])
   (:gen-class))
 
 (def at-pool (at/mk-pool))
-(def server-list (atom #{}))
 
 (defn api-response [data & [status]]
   {:status (or status 200)
@@ -36,11 +33,11 @@
   (context "/api" []
     (GET "/servers" []
       (api-response
-       (->> @server-list
+       (->> @servers/server-list
             (map #(dissoc % :rules :players))
             (take 30))))
     (context "/stats" []
-      (GET "/count" [] (api-response {:count (count @server-list)}))))
+      (GET "/count" [] (api-response {:count (count @servers/server-list)}))))
   (GET "/" req (page))
   (not-found "404 Don't do that."))
 
@@ -62,58 +59,12 @@
   (start-figwheel)
   (start-less))
 
-(defn- valid-server-str? [s]
-  (not (or (empty? s) (= (first s) \#))))
-
-(defn host->ip [host]
-  (try
-    (.getHostAddress (first (InetAddress/getAllByName host)))
-    (catch UnknownHostException err
-      (.println *err* (str "Could not resolve: " host)))))
-
-(defn- str-to-host-port [s]
-  (let [[host port] (str/split s #":")
-        host (host->ip host)
-        port (Integer/parseInt (or port "27015"))]
-    (when host {:ip host :port port})))
-
-(defn- update-server-list [servers]
-  (->> servers
-       (map (fn [{:keys [ip port] :as server}]
-              (assoc server
-                     :info (ssq/info ip port)
-;;;;                     :players (ssq/players ip port)
-;;;;                     :rules (ssq/rules ip port)
-                     )))
-       (map #(reduce
-              (fn [data key] (update-in data [key] deref))
-              %
-              [:info]))
-       (remove
-        (fn [server]
-          (contains? (:info server) :err)))
-       (reset! server-list)))
-
-(defn start-server-monitoring []
-  (let [servers
-        (->> (env "TF2SERVERS_LIST")
-             (#(or % "server-list.txt"))
-             io/reader
-             line-seq
-             (map str/trim)
-             (filter valid-server-str?)
-             (map str-to-host-port)
-             (remove nil?)
-             set)]
-    (update-server-list servers)
-    (at/every 60000 #(update-server-list servers) at-pool)))
-
 (defn stop-server []
   (at/stop-and-reset-pool! at-pool :strategy :kill)
-  (reset! server-list {}))
+  (reset! servers/server-list {}))
 
 (defn run [& [port]]
-  (start-server-monitoring)
+  (servers/start-server-monitoring)
   (when is-dev?
     (run-auto-reload))
   (run-web-server port))
