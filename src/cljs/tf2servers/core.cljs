@@ -134,7 +134,12 @@
                 array-seq)
         scroller (.-parentNode table)
 
-        col-widths (doall (for [td row] (.-clientWidth td)))
+        ;; Careful only to recalculate the header widths for actual
+        ;; data: if loading placeholder rows are displayed they cannot
+        ;; be used.
+        col-widths (when (= 8 (count row))
+                       (doall (for [td row] (.-clientWidth td))))
+
         row-height (.-clientHeight (first row))
         view-height (.-clientHeight scroller)
         scroll-top (.-scrollTop scroller)]
@@ -142,7 +147,7 @@
                    [:row-height row-height]
                    [:view-height view-height]
                    [:scroll-top scroll-top]]]
-      (maybe-set-state owner k d))))
+      (when d (maybe-set-state owner k d)))))
 
 (defcomponent server-table-row [data owner]
   (display-name [_] "server-table-row")
