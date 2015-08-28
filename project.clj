@@ -22,7 +22,7 @@
    [clj-ssq "0.4.1"]
    [environ "1.0.0"]
    [overtone/at-at "1.2.0"]
-   [cljs-ajax "0.3.14"]]
+   [cljs-ajax "0.3.14" :exclusions [org.clojure/clojurescript]]]
 
   :plugins [[lein-cljsbuild "1.0.5"]
             [lein-environ "1.0.0"]
