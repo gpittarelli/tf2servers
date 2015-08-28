@@ -18,7 +18,10 @@
   (set! (.-location js/window) (str "steam://connect/" url)))
 
 (defonce app-state
-  (atom {:servers [] :selected-url ""}))
+  (atom {:servers []
+         :server-cnt 0 ;; total number of available servers, NOT
+                       ;; necessarily (count servers)
+         :selected-url ""}))
 
 (defn- toggle-sort-order [sort-order] (if (= sort-order :up) :down :up))
 
@@ -245,18 +248,21 @@
     (dom/header
       (dom/input {:type "number" :min 1 :max 32 :value 24 :step 1}))))
 
+(defn- get-data
+  "Fetch data from the server and store it into the global app state."
+  ([data kword url] (get-data data kword url identity))
+  ([data kword url tform]
+   (GET url
+       {:handler #(om/update! data kword (tform %))
+        :error-handler
+        (fn [err]
+          (println (str "Error fetching \"" url "\":") err))})))
+
 (defcomponent app [data owner]
   (display-name [_] "app")
   (init-state [_]
-    (GET "/api/servers"
-        {:handler
-         (fn [servers]
-           (println "Recved " (count servers) " servers.")
-           (om/update! data :servers (map server->table-row servers)))
-         :error-handler
-         (fn [err]
-           (println "Fetch error:" err)
-           (.log js/console err))})
+    (get-data data :servers "/api/servers" (partial map server->table-row))
+    (get-data data :server-cnt "/api/stats/count")
     {})
   (render [_]
     (dom/div
