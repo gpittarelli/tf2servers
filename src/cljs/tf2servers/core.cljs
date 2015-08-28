@@ -39,7 +39,7 @@
     (or (first (remove zero? (map comp-fn coll1 coll2)))
         0)))
 
-(let [bool-comp identity
+(let [bool-comp #(if (and %1 %2) 0 (if %1 1 -1))
       str-comp locale-compare
       str-list-comp (make-list-comparator str-comp)
       int-comp compare
