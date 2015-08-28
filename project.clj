@@ -4,7 +4,7 @@
   :license {:name "Eclipse Public License"
             :url "http://www.eclipse.org/legal/epl-v10.html"}
 
-  :source-paths ["src/clj"]
+  :source-paths ["src/clj" "src/cljc"]
 
   :test-paths ["test/clj"]
 
@@ -35,7 +35,7 @@
   :uberjar-name "tf2servers.jar"
 
   :cljsbuild
-  {:builds {:app {:source-paths ["src/cljs"]
+  {:builds {:app {:source-paths ["src/cljs" "src/cljc"]
                   :compiler {:output-to     "resources/public/js/app.js"
                              :output-dir    "resources/public/js/out"
                              :source-map    "resources/public/js/out.js.map"
@@ -78,7 +78,7 @@
                     "env/test/js/unit-test.js"
                     "env/test/unit-test.html"] }
           :builds {:app {:source-paths ["env/dev/cljs"]}
-                   :test {:source-paths ["src/cljs" "test/cljs"]
+                   :test {:source-paths ["src/cljc" "src/cljs" "test/cljs"]
                           :compiler
                           {:output-to     "resources/public/js/app_test.js"
                            :output-dir    "resources/public/js/test"
