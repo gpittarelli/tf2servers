@@ -218,16 +218,24 @@
                   loading-row (dom/tr {:class "loading"}
                                 (dom/td {:col-span 8}
                                   "Loading..."))]
-              [(dom/tr {:class "top-spacer"
-                        :style {:height (* start-row
+              [;; hidden row that pushes the actual data rows into the
+               ;; scrolled-down view
+               (dom/tr {:class "top-spacer"
+                        :style {:height (* (min start-row (- (:server-cnt data)
+                                                             (- vis-row-cnt 1)))
                                            row-height)}})
+
+               ;; only display potentially visible rows
                (->> (:servers data)
                     (drop start-row)
                     (take vis-row-cnt)
                     (map ->row)
                     (pad vis-row-cnt loading-row))
+
+               ;; hidden row to force a native scrollbar that looks as
+               ;; if all rows were loaded and rendered
                (dom/tr {:class "bottom-spacer"
-                        :style {:top (* row-height 100)}}
+                        :style {:top (* row-height (:server-cnt data))}}
                  (dom/td "asdfasdf"))]))))))
   (did-mount [_]
     (let [update-sizes! #(update-measurements! data owner)]
@@ -259,7 +267,7 @@
   (display-name [_] "app")
   (init-state [_]
     (get-data data :servers "/api/servers" (partial map server->table-row))
-    (get-data data :server-cnt "/api/stats/count")
+    (get-data data :server-cnt "/api/stats/count" :count)
     {})
   (render [_]
     (dom/div
