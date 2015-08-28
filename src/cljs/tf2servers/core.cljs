@@ -218,9 +218,6 @@
                   loading-row (dom/tr {:class "loading"}
                                 (dom/td {:col-span 8}
                                   "Loading..."))]
-              (println scroll-top start-row
-                       vis-row-cnt view-height row-height)
-
               [(dom/tr {:class "top-spacer"
                         :style {:height (* start-row
                                            row-height)}})
